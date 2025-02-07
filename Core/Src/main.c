@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -26,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "stdio.h"
 #include "string.h"
+#include "OLED.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -90,8 +92,11 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart1, (uint8_t *)&aRxBuffer, 1);
+  OLED_Init();
+  OLED_CLS();
   ESP_Init();
   /* USER CODE END 2 */
 
@@ -199,6 +204,8 @@ void ParseWeatherData(void)
             strncpy(temperature, tempPtr, tempEnd - tempPtr);
             temperature[tempEnd - tempPtr] = '\0';
             printf("Temperature: %s°C\r\n", temperature);
+//			OLED_ShowNum(0,0,(uint8_t)temperature,3,16);
+			OLED_ShowStr(0,0,temperature,2);
             // 调用显示函数，例如 Display_Temperature(temperature);
         }
     }
@@ -213,6 +220,8 @@ void ParseWeatherData(void)
             strncpy(weatherStatus, textPtr, textEnd - textPtr);
             weatherStatus[textEnd - textPtr] = '\0';
             printf("Weather: %s\r\n", weatherStatus);
+			//OLED_ShowNum(0,5,(uint8_t)weatherStatus,3,16);
+			OLED_ShowStr(0,5,weatherStatus,2);
             // 调用显示函数，例如 Display_Weather(weatherStatus);
         }
     }

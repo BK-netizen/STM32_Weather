@@ -24,9 +24,12 @@ stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dm
 stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
 stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_i2c.h
 stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 stm32f103rc_weather\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+stm32f103rc_weather\main.o: ../Core/Inc/i2c.h
 stm32f103rc_weather\main.o: ../Core/Inc/usart.h
 stm32f103rc_weather\main.o: ../Core/Inc/gpio.h
 stm32f103rc_weather\main.o: D:\GEEK\ruanjian\KEIL\ARM\ARMCC\include\stdio.h
 stm32f103rc_weather\main.o: D:\GEEK\ruanjian\KEIL\ARM\ARMCC\include\string.h
+stm32f103rc_weather\main.o: ../Core/Inc/OLED.h
