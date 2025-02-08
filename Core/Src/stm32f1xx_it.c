@@ -233,7 +233,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		else
 		{
 			RxBuffer[Uart1_Rx_Cnt++] = aRxBuffer;   //接收数据转存
-			if((RxBuffer[Uart1_Rx_Cnt-1] == 0x0A)&&(RxBuffer[Uart1_Rx_Cnt-2] == 0x0D)) //判断结束位
+			if((RxBuffer[Uart1_Rx_Cnt-1] == 0x7D)&&(RxBuffer[Uart1_Rx_Cnt-2] == 0x5D)) //判断结束位
 			{
 				//HAL_UART_Transmit(&huart1, (uint8_t *)&RxBuffer, Uart1_Rx_Cnt,0xFFFF); //将收到的信息发送出去
 				dataReceived = 1;
@@ -244,7 +244,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					
 					//LED_Flag = 1;
 					
-                    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); // 点亮 LED
+                    //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET); // 点亮 LED
                 }
 //				if (strncmp((char *)RxBuffer, "S", 1) == 0)
 //                {

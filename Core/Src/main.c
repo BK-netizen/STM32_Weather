@@ -51,6 +51,8 @@ void ParseWeatherData(void);
 extern uint8_t aRxBuffer;			//接收中断缓冲
 extern char RxBuffer[1000];
 extern uint8_t dataReceived;
+extern uint16_t Uart1_Rx_Cnt;
+extern unsigned char BMP1[];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +99,7 @@ int main(void)
   HAL_UART_Receive_IT(&huart1, (uint8_t *)&aRxBuffer, 1);
   OLED_Init();
   OLED_CLS();
+  OLED_DrawBMP(80,3,128,8,BMP1);
   ESP_Init();
   /* USER CODE END 2 */
 
@@ -107,14 +110,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  ParseWeatherData();
-//    if (dataReceived)  // 确保只有在接收到完整数据时才进行解析
-//    {
-//        //HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);
-//		ParseWeatherData();
-//        dataReceived = 0;  // 解析完数据后，重置标志位
-//		//HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_8);
-//    }
+//	  ParseWeatherData();
+//	  HAL_Delay(5000);
+	  
+	  //printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
+	//printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
+
+    if (dataReceived)  // 确保只有在接收到完整数据时才进行解析
+    {
+        //HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);
+		ParseWeatherData();
+        dataReceived = 0;  // 解析完数据后，重置标志位
+		Uart1_Rx_Cnt = 0;
+		memset(RxBuffer,0x00,sizeof(RxBuffer)); //清空数组
+		//HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_8);
+    }
+	HAL_Delay(10000);
+
   }
   /* USER CODE END 3 */
 }
@@ -160,7 +172,7 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void ESP_Init(void)
 {
-	printf("AT\r\n");
+	printf("ATE1\r\n");
 	HAL_Delay(1000);
 	printf("AT+CWJAP=\"BK\"\,\"123456789\"\r\n");  //连接WIFI
 	HAL_Delay(2000);
@@ -179,7 +191,7 @@ void ESP_Init(void)
 
 void ParseWeatherData(void)
 {
-    char *jsonStart = strchr(RxBuffer, '{'); // 定位JSON起始位置
+    char *jsonStart = strchr(RxBuffer, '{'); // 定位JSON起始位置 strchr 查找位置指向内存地址
 	
     if (jsonStart == NULL) {
         //printf("Error: JSON start not found\r\n");
@@ -196,16 +208,17 @@ void ParseWeatherData(void)
     // 提取温度
     char *tempPtr = strstr(nowSection, "\"temperature\":\"");
     if (tempPtr) {
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);
+		//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_8,GPIO_PIN_RESET);
 		tempPtr += strlen("\"temperature\":\"");
         char *tempEnd = strchr(tempPtr, '\"');
         if (tempEnd) {
             char temperature[10];
             strncpy(temperature, tempPtr, tempEnd - tempPtr);
             temperature[tempEnd - tempPtr] = '\0';
-            printf("Temperature: %s°C\r\n", temperature);
+            //printf("Temperature: %s°C\r\n", temperature);
 //			OLED_ShowNum(0,0,(uint8_t)temperature,3,16);
 			OLED_ShowStr(0,0,temperature,2);
+			OLED_ShowStr(20,0,"C",2);
             // 调用显示函数，例如 Display_Temperature(temperature);
         }
     }
@@ -219,10 +232,39 @@ void ParseWeatherData(void)
             char weatherStatus[20];
             strncpy(weatherStatus, textPtr, textEnd - textPtr);
             weatherStatus[textEnd - textPtr] = '\0';
-            printf("Weather: %s\r\n", weatherStatus);
+            //printf("Weather: %s\r\n", weatherStatus);
 			//OLED_ShowNum(0,5,(uint8_t)weatherStatus,3,16);
 			OLED_ShowStr(0,5,weatherStatus,2);
             // 调用显示函数，例如 Display_Weather(weatherStatus);
+        }
+    }
+	
+	// 提取地点状况
+    char *locationPtr = strstr(jsonStart, "\"name\":\"");
+    if (locationPtr) {
+        locationPtr += strlen("\"name\":\"");
+        char *locationEnd = strchr(locationPtr, '\"');
+        if (locationEnd) {
+            char location[30];
+            strncpy(location, locationPtr, locationEnd - locationPtr);
+            location[locationEnd - locationPtr] = '\0';   //使其成为字符串
+            //printf("Weather: %s\r\n", weatherStatus);
+			//OLED_ShowNum(0,5,(uint8_t)weatherStatus,3,16);
+			OLED_ShowStr(0,3,location,2);
+            // 调用显示函数，例如 Display_Weather(weatherStatus);
+        }
+    }
+	
+	char *timePtr = strstr(jsonStart, "\"last_update\":\"");
+    if (timePtr) {
+        timePtr += strlen("\"last_update\":\"");
+        char *timeEnd = strchr(timePtr, '\"');
+        if (timeEnd) {
+            char lastUpdate[30];
+            strncpy(lastUpdate, timePtr, 10);
+            lastUpdate[timeEnd - timePtr] = '\0';
+            //printf("Last Update: %s\r\n", lastUpdate);
+            OLED_ShowStr(40,0,lastUpdate,2); // 显示时间
         }
     }
 }
