@@ -28,6 +28,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "OLED.h"
+#include "key.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,7 +73,9 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  uint8_t city = 0;
+	  uint8_t flag = 0;
+  uint8_t key = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,7 +102,8 @@ int main(void)
   HAL_UART_Receive_IT(&huart1, (uint8_t *)&aRxBuffer, 1);
   OLED_Init();
   OLED_CLS();
-  OLED_DrawBMP(80,3,128,8,BMP1);
+//  OLED_DrawBMP(80,3,128,8,BMP1);
+  key_init();
   ESP_Init();
   /* USER CODE END 2 */
 
@@ -112,9 +116,36 @@ int main(void)
     /* USER CODE BEGIN 3 */
 //	  ParseWeatherData();
 //	  HAL_Delay(5000);
-	  
-	  //printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
-	//printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
+	 key = key_scan(1);
+	  if(key == 1)
+	  {
+		 while ((!(RxBuffer[Uart1_Rx_Cnt - 1] == 0x7D && RxBuffer[Uart1_Rx_Cnt - 2] == 0x5D)) && city ==0)
+		{
+			printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
+			HAL_Delay(1000);
+			if((RxBuffer[Uart1_Rx_Cnt - 1] == 0x7D && RxBuffer[Uart1_Rx_Cnt - 2] == 0x5D))
+			{
+				city = 1;
+			}
+		}
+	  }
+	  if(key == 2)
+	  {
+		 while ((!(RxBuffer[Uart1_Rx_Cnt - 1] == 0x7D && RxBuffer[Uart1_Rx_Cnt - 2] == 0x5D)) && city ==1)
+		{
+			if(flag == 0)
+			{
+				  OLED_CLS();
+				 flag  = 1;
+			}
+			printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=Beijing&language=en&unit=c\r\n");  //连接WIFI
+			HAL_Delay(1000);
+			if((RxBuffer[Uart1_Rx_Cnt - 1] == 0x7D && RxBuffer[Uart1_Rx_Cnt - 2] == 0x5D))
+			{
+				city = 2;
+			}
+		}
+	  }
 
     if (dataReceived)  // 确保只有在接收到完整数据时才进行解析
     {
@@ -125,7 +156,22 @@ int main(void)
 		memset(RxBuffer,0x00,sizeof(RxBuffer)); //清空数组
 		//HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_8);
     }
-	HAL_Delay(10000);
+	HAL_Delay(2000);
+//	HAL_UART_Receive_IT(&huart1, (uint8_t *)&aRxBuffer, 1);
+	//if(city == 0)
+	//{
+//	while ((!(RxBuffer[Uart1_Rx_Cnt - 1] == 0x7D && RxBuffer[Uart1_Rx_Cnt - 2] == 0x5D)) && city ==0)
+//	{
+//		printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
+//		HAL_Delay(1000);
+//		if((RxBuffer[Uart1_Rx_Cnt - 1] == 0x7D && RxBuffer[Uart1_Rx_Cnt - 2] == 0x5D))
+//		{
+//			city = 1;
+//		}
+//	}
+		//city =1;
+	//}
+	
 
   }
   /* USER CODE END 3 */
@@ -177,6 +223,7 @@ void ESP_Init(void)
 	printf("AT+CWJAP=\"BK\"\,\"123456789\"\r\n");  //连接WIFI
 	HAL_Delay(2000);
 	printf("AT+CIPMODE=1\r\n");  //连接WIFI
+
 	HAL_Delay(1000);
 	printf("AT+CIPSTART=\"TCP\"\,\"api.seniverse.com\"\,80\r\n");  //连接WIFI
 	HAL_Delay(1000);
@@ -185,9 +232,12 @@ void ESP_Init(void)
 	printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=beijing&language=en&unit=c\r\n");  //连接WIFI
 	HAL_Delay(2000);
 	
+	//printf("GET https://api.seniverse.com/v3/weather/now.json?key=Sx0WBVjlvmOfdCZeT&location=nanjing&language=en&unit=c\r\n");  //连接WIFI
+//	HAL_Delay(2000);
+	
 //	ParseWeatherData();
 }
-
+   
 
 void ParseWeatherData(void)
 {
@@ -234,6 +284,10 @@ void ParseWeatherData(void)
             weatherStatus[textEnd - textPtr] = '\0';
             //printf("Weather: %s\r\n", weatherStatus);
 			//OLED_ShowNum(0,5,(uint8_t)weatherStatus,3,16);
+			if(strcmp(weatherStatus,"Sunny") == 0)
+			{
+				  OLED_DrawBMP(80,3,128,8,BMP1);
+			}
 			OLED_ShowStr(0,5,weatherStatus,2);
             // 调用显示函数，例如 Display_Weather(weatherStatus);
         }

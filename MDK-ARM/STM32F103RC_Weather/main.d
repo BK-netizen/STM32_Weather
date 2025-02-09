@@ -33,3 +33,4 @@ stm32f103rc_weather\main.o: ../Core/Inc/gpio.h
 stm32f103rc_weather\main.o: D:\GEEK\ruanjian\KEIL\ARM\ARMCC\include\stdio.h
 stm32f103rc_weather\main.o: D:\GEEK\ruanjian\KEIL\ARM\ARMCC\include\string.h
 stm32f103rc_weather\main.o: ../Core/Inc/OLED.h
+stm32f103rc_weather\main.o: ../Core/Inc/key.h
